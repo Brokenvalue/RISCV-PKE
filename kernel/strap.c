@@ -22,8 +22,11 @@ static void handle_syscall(trapframe *tf) {
   // kernel/syscall.c) to conduct real operations of the kernel side for a syscall.
   // IMPORTANT: return value should be returned to user app, or else, you will encounter
   // problems in later experiments!
-  panic( "call do_syscall to accomplish the syscall and lab1_1 here.\n" );
-
+  //panic( "call do_syscall to accomplish the syscall and lab1_1 here.\n" );
+  tf->regs.a0=do_syscall(tf->regs.a0,tf->regs.a1,tf->regs.a2,tf->regs.a3,tf->regs.a4,tf->regs.a5,tf->regs.a6,tf->regs.a7);
+  //此处的a0-a7是指已经载入的8个寄存器内的数据，其中a0代表的是用户系统调用的类型。
+  //a2和a3表示的内容为要在屏幕上打印的内容以及字符串长度，其余的全部是0（在printf和exit中定义的形参）
+  //返回值为0，将其写入a0寄存器中，表示系统调用完成
 }
 
 //
