@@ -40,8 +40,9 @@ void handle_mtimer_trap() {
   // TODO (lab1_3): increase g_ticks to record this "tick", and then clear the "SIP"
   // field in sip register.
   // hint: use write_csr to disable the SIP_SSIP bit in sip.
-  panic( "lab1_3: increase g_ticks by one, and clear SIP field in sip register.\n" );
-
+  //panic( "lab1_3: increase g_ticks by one, and clear SIP field in sip register.\n" );
+  g_ticks++;  //将g_ticks进行自增操作，用于计数
+  write_csr(sip, 0);  //对SIP的SIP_SSIP位清零，以保证下次再发生时钟中断时，M态的函数将该位设置为1会导致S模式的下一次中断。
 }
 
 //
