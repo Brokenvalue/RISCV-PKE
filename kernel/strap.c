@@ -10,6 +10,7 @@
 #include "vmm.h"
 #include "sched.h"
 #include "util/functions.h"
+#include "memlayout.h"
 
 #include "spike_interface/spike_utils.h"
 
@@ -26,8 +27,11 @@ static void handle_syscall(trapframe *tf) {
   // kernel/syscall.c) to conduct real operations of the kernel side for a syscall.
   // IMPORTANT: return value should be returned to user app, or else, you will encounter
   // problems in later experiments!
-  panic( "call do_syscall to accomplish the syscall and lab1_1 here.\n" );
-
+  //panic( "call do_syscall to accomplish the syscall and lab1_1 here.\n" );
+  tf->regs.a0=do_syscall(tf->regs.a0,tf->regs.a1,tf->regs.a2,tf->regs.a3,tf->regs.a4,tf->regs.a5,tf->regs.a6,tf->regs.a7);
+  //此处的a0-a7是指已经载入的8个寄存器内的数据，其中a0代表的是用户系统调用的类型。
+  //a2和a3表示的内容为要在屏幕上打印的内容以及字符串长度，其余的全部是0（在printf和exit中定义的形参）
+  //返回值为0，将其写入a0寄存器中，表示系统调用完成
 }
 
 //
@@ -41,8 +45,9 @@ void handle_mtimer_trap() {
   // TODO (lab1_3): increase g_ticks to record this "tick", and then clear the "SIP"
   // field in sip register.
   // hint: use write_csr to disable the SIP_SSIP bit in sip.
-  panic( "lab1_3: increase g_ticks by one, and clear SIP field in sip register.\n" );
-
+  //panic( "lab1_3: increase g_ticks by one, and clear SIP field in sip register.\n" );
+  g_ticks++;  //将g_ticks进行自增操作，用于计数
+  write_csr(sip, 0);  //对SIP的SIP_SSIP位清零，以保证下次再发生时钟中断时，M态的函数将该位设置为1会导致S模式的下一次中断。
 }
 
 //
@@ -58,8 +63,12 @@ void handle_user_page_fault(uint64 mcause, uint64 sepc, uint64 stval) {
       // dynamically increase application stack.
       // hint: first allocate a new physical page, and then, maps the new page to the
       // virtual address that causes the page fault.
-      panic( "You need to implement the operations that actually handle the page fault in lab2_3.\n" );
-
+      //panic( "You need to implement the operations that actually handle the page fault in lab2_3.\n" );
+      if ((stval < USER_STACK_TOP) && (stval > USER_STACK_TOP - PGSIZE * 20)) {  //判断stval与USER_STACK_TOP的大小关系
+        void* pa = alloc_page();  //分配一个物理页
+        user_vm_map((pagetable_t)current->pagetable, ROUNDDOWN(stval, PGSIZE), PGSIZE, (uint64)pa, prot_to_type(PROT_WRITE | PROT_READ, 1));
+        //调用map_pages函数，其中current为当前物理页面的首地址，stval是要被映射的逻辑地址, PGSIZE是建立映射的区间长度，pa是要被映射的首地址，最后是访问权限
+      }  
       break;
     default:
       sprint("unknown page fault.\n");
@@ -75,10 +84,15 @@ void rrsched() {
   // hint: increase the tick_count member of current process by one, if it is bigger than
   // TIME_SLICE_LEN (means it has consumed its time slice), change its status into READY,
   // place it in the rear of ready queue, and finally schedule next process to run.
-  panic( "You need to further implement the timer handling in lab3_3.\n" );
-
+  //panic( "You need to further implement the timer handling in lab3_3.\n" );
+  current->tick_count++; //先将tick_count加1
+  if (current->tick_count >= TIME_SLICE_LEN) {  //判断tick_count是否大于等于TIME_SLICE_LEN（2）
+    current->tick_count = 0;  //若大于，则说明要进行时间片的轮转，于是将tick_count清0重新计数
+    current->status = READY;  //将当前进程的状态设置为就绪状态
+    insert_to_ready_queue( current );  //加入就绪队列
+    schedule();  //进程调度函数
+  }
 }
-
 //
 // kernel/smode_trap.S will pass control to smode_trap_handler, when a trap happens
 // in S-mode.
