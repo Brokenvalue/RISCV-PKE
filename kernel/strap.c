@@ -84,10 +84,15 @@ void rrsched() {
   // hint: increase the tick_count member of current process by one, if it is bigger than
   // TIME_SLICE_LEN (means it has consumed its time slice), change its status into READY,
   // place it in the rear of ready queue, and finally schedule next process to run.
-  panic( "You need to further implement the timer handling in lab3_3.\n" );
-
+  //panic( "You need to further implement the timer handling in lab3_3.\n" );
+  current->tick_count++; //先将tick_count加1
+  if (current->tick_count >= TIME_SLICE_LEN) {  //判断tick_count是否大于等于TIME_SLICE_LEN（2）
+    current->tick_count = 0;  //若大于，则说明要进行时间片的轮转，于是将tick_count清0重新计数
+    current->status = READY;  //将当前进程的状态设置为就绪状态
+    insert_to_ready_queue( current );  //加入就绪队列
+    schedule();  //进程调度函数
+  }
 }
-
 //
 // kernel/smode_trap.S will pass control to smode_trap_handler, when a trap happens
 // in S-mode.
