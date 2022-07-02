@@ -159,8 +159,10 @@ void *user_va_to_pa(pagetable_t page_dir, void *va) {
   // (va & (1<<PGSHIFT -1)) means computing the offset of "va" inside its page.
   // Also, it is possible that "va" is not mapped at all. in such case, we can find
   // invalid PTE, and should return NULL.
-  panic( "You have to implement user_va_to_pa (convert user va to pa) to print messages in lab2_1.\n" );
-
+  //panic( "You have to implement user_va_to_pa (convert user va to pa) to print messages in lab2_1.\n" );
+  uint64 pa = lookup_pa(page_dir, (uint64)va);  //查找逻辑地址va所在虚拟页面地址对应的物理页面地址   page_dir指向页表
+  if (pa) return (void *)(pa + ((uint64)va & ((1<<PGSHIFT) -1)));  //计算页偏移值从而得到最终的va对应的物理地址
+  else return NULL;  //判断：若va无法映射到具体的物理地址，则返回NULL
 }
 
 //
@@ -184,7 +186,16 @@ void user_vm_unmap(pagetable_t page_dir, uint64 va, uint64 size, int free) {
   // (use free_page() defined in pmm.c) the physical pages. lastly, invalidate the PTEs.
   // as naive_free reclaims only one page at a time, you only need to consider one page
   // to make user/app_naive_malloc to behave correctly.
-  panic( "You have to implement user_vm_unmap to free pages using naive_free in lab2_2.\n" );
+  //panic( "You have to implement user_vm_unmap to free pages using naive_free in lab2_2.\n" );
+  pte_t *pte = page_walk(page_dir, va, 0);  //通过调用函数得到物理地址va对应的页表项
+  void *pa;
+  if (pte == 0 || (*pte & PTE_V) == 0 || ((*pte & PTE_R) == 0 && (*pte & PTE_W) == 0)) return;
+  //V（Valid）位决定了该PDE/PTE是否有效（V=1时有效），即是否有对应的实页。
+  // R（Read）、W（Write）位分别表示此页对应的实页是否可读、可写和可执行。
+  //这一步判断其实就是一个过滤操作，判断找不到对应页表项的情况
+  else pa = (void *)(PTE2PA(*pte));  //得到va所对应物理页的首地址pa
+  if (free) free_page(pa); //释放对应的地址空间
+  *pte = *pte & ~PTE_V; //将有效位置为0，便于下一次地址空间分配
 
 }
 
