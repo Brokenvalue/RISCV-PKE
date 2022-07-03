@@ -67,6 +67,7 @@ void handle_user_page_fault(uint64 mcause, uint64 sepc, uint64 stval) {
         void* pa = alloc_page();  //分配一个物理页
         user_vm_map((pagetable_t)current->pagetable, ROUNDDOWN(stval, PGSIZE), PGSIZE, (uint64)pa, prot_to_type(PROT_WRITE | PROT_READ, 1));
         //调用map_pages函数，其中current为当前物理页面的首地址，stval是要被映射的逻辑地址, PGSIZE是建立映射的区间长度，pa是要被映射的首地址，最后是访问权限
+        //RoundDown的使用为了防止页表中产生碎片
       }  
       break;
     default:
