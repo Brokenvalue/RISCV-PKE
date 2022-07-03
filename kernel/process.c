@@ -195,7 +195,7 @@ int do_fork( process* parent)
         // DO NOT COPY THE PHYSICAL PAGES, JUST MAP THEM.
         //panic( "You need to implement the code segment mapping of child in lab3_1.\n" );
         uint64 pa = lookup_pa(parent->pagetable, parent->mapped_info[i].va);  //查找父进程所在虚拟页面对应的物理页面地址
-        user_vm_map(child->pagetable, parent->mapped_info[i].va, PGSIZE, pa, prot_to_type(PROT_WRITE | PROT_READ | PROT_EXEC, 1));
+        user_vm_map(child->pagetable, parent->mapped_info[i].va, PGSIZE, pa, prot_to_type(PROT_READ | PROT_EXEC, 1));
         //调用map_pages函数将子进程的逻辑地址映射到父进程中装载代码段的物理页面
         sprint("do_fork map code segment at pa:%lx of parent to child at va:%lx.\n", pa, parent->mapped_info[i].va);
         //打印映射的地址信息
@@ -206,6 +206,22 @@ int do_fork( process* parent)
         child->mapped_info[child->total_mapped_region].seg_type = CODE_SEGMENT;
         child->total_mapped_region++; //将父进程的相关信息赋值到子进程中
         break;
+////////////////////////////////////////////////////////////////////////////////////chanllenge
+         case DATA_SEGMENT: {
+        uint64 pa = lookup_pa(parent->pagetable, parent->mapped_info[i].va);
+        void *child_pa = alloc_page();
+        memcpy(child_pa, (void *)pa, PGSIZE);
+        user_vm_map(child->pagetable, parent->mapped_info[i].va, PGSIZE, (uint64)child_pa, prot_to_type(PROT_WRITE | PROT_READ, 1));
+        //sprint("do_fork map data segment at pa:%lx of parent to child at va:%lx.\n", pa, parent->mapped_info[i].va);
+        // after mapping, register the vm region (do not delete codes below!)
+        child->mapped_info[child->total_mapped_region].va = parent->mapped_info[i].va;
+        child->mapped_info[child->total_mapped_region].npages = 
+          parent->mapped_info[i].npages;
+        child->mapped_info[child->total_mapped_region].seg_type = DATA_SEGMENT;
+        child->total_mapped_region++;
+        break;   
+////////////////////////////////////////////////////////////////////////////////////chanllenge
+      }
     }
   }
 
@@ -216,3 +232,74 @@ int do_fork( process* parent)
 
   return child->pid;
 }
+
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////chanllenge
+int do_wait(int pid) {
+  // wait for any child process to exit
+  if (pid == -1) {
+    for (int i = 0; i < NPROC; ++i) {
+      if (procs[i].parent == current) {
+        wait_for(i);
+        return i;
+      }
+    }
+  }
+  if (pid < -1 || pid >= NPROC || (pid > 0 && procs[pid].parent != current)) return -1;
+  // wait for the child process with pid to exit
+  wait_for(pid);
+  return pid;
+}
+
+int find_child(process *parent, int pid) {
+  if (pid < -1 || pid >= NPROC || (pid != -1 && procs[pid].parent != parent)) return -1;
+  if (pid == -1) {
+    for (int i = 0; i < NPROC; ++i) {
+      if (procs[i].parent == current) return i;
+    }
+    }
+  return pid; // current process has no child
+}
+
+void wait_for(int pid) {
+  if (procs[pid].status == FREE || procs[pid].status == ZOMBIE) return;
+  insert_to_waiting_queue( current );
+  schedule();
+}
+
+process *waiting_queue_head = NULL;
+void insert_to_waiting_queue(process *proc) {
+  //sprint( "going to insert process %d to waiting queue.\n", proc->pid );
+  // if the queue is empty in the beginning
+  if( waiting_queue_head == NULL ){
+    proc->status = BLOCKED;
+    proc->queue_next = NULL;
+    waiting_queue_head = proc;
+    return;
+  }
+
+  // waiting queue is not empty
+  process *p;
+  // browse the waiting queue to see if proc is already in-queue
+  for( p=waiting_queue_head; p->queue_next!=NULL; p=p->queue_next )
+    if( p == proc ) return;  //already in queue
+
+  // p points to the last element of the waiting queue
+  if( p==proc ) return;
+  proc->status = BLOCKED;
+  proc->queue_next = waiting_queue_head;
+  waiting_queue_head = proc;
+  return;
+}
+
+void wake_up() {
+   if (waiting_queue_head == NULL) return;
+  process *p = waiting_queue_head;
+  waiting_queue_head = waiting_queue_head->queue_next;
+  insert_to_ready_queue(p);
+}
+////////////////////////////////////////////////////////////////////////////////////chanllenge
