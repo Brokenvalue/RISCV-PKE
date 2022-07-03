@@ -31,8 +31,8 @@ ssize_t sys_user_exit(uint64 code) {
   shutdown(code);
 }
 
-////////////////////////////////////////////////////////////////////////
-ssize_t sys_user_backtrace(uint64 depth)               //
+
+ssize_t sys_user_backtrace(uint64 depth)               
 {
   uint64 *fp = (uint64 *)current->trapframe->regs.s0; // 810fffa0
   //sprint("/****** debug *****/  *fp=0x%lx\n", *fp); // 810fffc0
@@ -48,7 +48,7 @@ ssize_t sys_user_backtrace(uint64 depth)               //
   }
   return 0;
 }
-  /////////////////////////////////////////////////////////////////
+  
 //
 // [a0]: the syscall number; [a1] ... [a7]: arguments to the syscalls.
 // returns the code of success, (e.g., 0 means success, fail for otherwise)
