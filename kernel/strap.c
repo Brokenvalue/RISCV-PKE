@@ -54,7 +54,7 @@ void handle_mtimer_trap() {
 // sepc: the pc when fault happens;
 // stval: the virtual address that causes pagefault when being accessed.
 //
-void handle_user_page_fault(uint64 mcause, uint64 sepc, uint64 stval, uint64 user_sp) {           /////////////////////////增加变量重构
+void handle_user_page_fault(uint64 mcause, uint64 sepc, uint64 stval, uint64 user_sp) { //相较于lab2-3增加了变量进行重构
   sprint("handle_page_fault: %lx\n", stval);
   switch (mcause) {
     case CAUSE_STORE_PAGE_FAULT:
@@ -64,7 +64,7 @@ void handle_user_page_fault(uint64 mcause, uint64 sepc, uint64 stval, uint64 use
       // virtual address that causes the page fault.
       //panic( "You need to implement the operations that actually handle the page fault in lab2_3.\n" );
       //if ((stval < USER_STACK_TOP) && (stval > USER_STACK_TOP - PGSIZE * 20)) {  //判断stval与USER_STACK_TOP的大小关系
-        if ((stval < user_sp) && (stval > user_sp - PGSIZE)) {   ///////////////////////////////////////////////////////////////////////
+        if ((stval < user_sp) && (stval > user_sp - PGSIZE)) {   
         void* pa = alloc_page();  //分配一个物理页
         user_vm_map((pagetable_t)current->pagetable, ROUNDDOWN(stval, PGSIZE), PGSIZE, (uint64)pa, prot_to_type(PROT_WRITE | PROT_READ, 1));
         //调用map_pages函数，其中current为当前物理页面的首地址，stval是要被映射的逻辑地址, PGSIZE是建立映射的区间长度，pa是要被映射的首地址，最后是访问权限
@@ -106,7 +106,7 @@ void smode_trap_handler(void) {
       // the address of missing page is stored in stval
       // call handle_user_page_fault to process page faults
       //handle_user_page_fault(cause, read_csr(sepc), read_csr(stval));
-      handle_user_page_fault(cause, read_csr(sepc), read_csr(stval), current->user_sp);/////////////////////////////////////////////
+      handle_user_page_fault(cause, read_csr(sepc), read_csr(stval), current->user_sp);
       current->user_sp -= PGSIZE;
       break;
     default:
