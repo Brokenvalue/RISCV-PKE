@@ -187,13 +187,13 @@ void user_vm_unmap(pagetable_t page_dir, uint64 va, uint64 size, int free) {
   // as naive_free reclaims only one page at a time, you only need to consider one page
   // to make user/app_naive_malloc to behave correctly.
   //panic( "You have to implement user_vm_unmap to free pages using naive_free in lab2_2.\n" );
-  pte_t *pte = page_walk(page_dir, va, 0);  //通过调用函数得到物理地址va对应的页表项
+  pte_t *pte = page_walk(page_dir, va, 0);  //通过调用函数得到物理地址va对应的页表项(指针)
   void *pa;
-  if (pte == 0 || (*pte & PTE_V) == 0 || ((*pte & PTE_R) == 0 && (*pte & PTE_W) == 0)) return;
+  //if (pte == 0 || (*pte & PTE_V) == 0 || ((*pte & PTE_R) == 0 && (*pte & PTE_W) == 0)) return;
   //V（Valid）位决定了该PDE/PTE是否有效（V=1时有效），即是否有对应的实页。
   // R（Read）、W（Write）位分别表示此页对应的实页是否可读、可写和可执行。
   //这一步判断其实就是一个过滤操作，判断找不到对应页表项的情况
-  else pa = (void *)(PTE2PA(*pte));  //得到va所对应物理页的首地址pa
+  pa = (void *)(PTE2PA(*pte));  //得到va所对应物理页的首地址pa
   if (free) free_page(pa); //释放对应的地址空间
   *pte = *pte & ~PTE_V; //将有效位置为0，便于下一次地址空间分配
 
