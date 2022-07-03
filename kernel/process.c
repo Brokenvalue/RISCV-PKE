@@ -195,7 +195,7 @@ int do_fork( process* parent)
         // DO NOT COPY THE PHYSICAL PAGES, JUST MAP THEM.
         //panic( "You need to implement the code segment mapping of child in lab3_1.\n" );
         uint64 pa = lookup_pa(parent->pagetable, parent->mapped_info[i].va);  //查找父进程所在虚拟页面对应的物理页面地址
-        user_vm_map(child->pagetable, parent->mapped_info[i].va, PGSIZE, pa, prot_to_type(PROT_WRITE | PROT_READ | PROT_EXEC, 1));
+        user_vm_map(child->pagetable, parent->mapped_info[i].va, PGSIZE * parent->mapped_info[i].npages, pa, prot_to_type( PROT_READ | PROT_EXEC, 1));
         //调用map_pages函数将子进程的逻辑地址映射到父进程中装载代码段的物理页面
         sprint("do_fork map code segment at pa:%lx of parent to child at va:%lx.\n", pa, parent->mapped_info[i].va);
         //打印映射的地址信息
