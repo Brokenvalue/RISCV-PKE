@@ -72,7 +72,7 @@ typedef struct process_t {
   // accounting. added @lab3_3
   int tick_count;
 
-  int wait_pid;                 //////////////////////////////////////////////////challenge
+  int wait_pid;                 
 }process;
 
 // switch to run user app
@@ -94,12 +94,11 @@ process* alloc_process();
 int free_process( process* proc );
 // fork a child from parent
 int do_fork(process* parent);
- //////////////////////////////////////////////////challenge
+ 
 int do_wait(int pid);
 void wait_for(int pid);
 void insert_to_waiting_queue(process *proc);
 void wake_up();
- //////////////////////////////////////////////////challenge
 // current running process
 extern process* current;
 

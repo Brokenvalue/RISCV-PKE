@@ -77,8 +77,6 @@ void yield() {
   do_user_call(SYS_user_yield, 0, 0, 0, 0, 0, 0, 0);
 }
 
-//////////////////////////////////////////////////////////////challenge
 int wait(int pid) {
   return do_user_call(SYS_user_wait, pid, 0, 0, 0, 0, 0, 0);
 } 
-//////////////////////////////////////////////////////////////challenge

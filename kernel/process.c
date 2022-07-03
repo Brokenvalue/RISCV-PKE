@@ -206,8 +206,8 @@ int do_fork( process* parent)
         child->mapped_info[child->total_mapped_region].seg_type = CODE_SEGMENT;
         child->total_mapped_region++; //将父进程的相关信息赋值到子进程中
         break;
-////////////////////////////////////////////////////////////////////////////////////chanllenge
-         case DATA_SEGMENT: {
+
+      case DATA_SEGMENT: {    //实现数据段的复制
         uint64 pa = lookup_pa(parent->pagetable, parent->mapped_info[i].va);
         void *child_pa = alloc_page();
         memcpy(child_pa, (void *)pa, PGSIZE);
@@ -220,7 +220,7 @@ int do_fork( process* parent)
         child->mapped_info[child->total_mapped_region].seg_type = DATA_SEGMENT;
         child->total_mapped_region++;
         break;   
-////////////////////////////////////////////////////////////////////////////////////chanllenge
+
       }
     }
   }
@@ -234,11 +234,6 @@ int do_fork( process* parent)
 }
 
 
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////chanllenge
 int do_wait(int pid) {
   // wait for any child process to exit
   if (pid == -1) {
@@ -266,15 +261,16 @@ int find_child(process *parent, int pid) {
 }
 
 void wait_for(int pid) {
-  if (procs[pid].status == FREE || procs[pid].status == ZOMBIE) return;
-  insert_to_waiting_queue( current );
-  schedule();
+  if (procs[pid].status == FREE || procs[pid].status == ZOMBIE) return;  //判断进程池中进程的状态
+  insert_to_waiting_queue( current );  //将当前进程插入等待队列中
+  schedule();  //进程调度函数
 }
 
 process *waiting_queue_head = NULL;
+
 void insert_to_waiting_queue(process *proc) {
   //sprint( "going to insert process %d to waiting queue.\n", proc->pid );
-  // if the queue is empty in the beginning
+  // 若队列为空
   if( waiting_queue_head == NULL ){
     proc->status = BLOCKED;
     proc->queue_next = NULL;
@@ -282,24 +278,22 @@ void insert_to_waiting_queue(process *proc) {
     return;
   }
 
-  // waiting queue is not empty
+  // 若队列不为空
   process *p;
-  // browse the waiting queue to see if proc is already in-queue
+  // 判断proc是否已经在等待队列中
   for( p=waiting_queue_head; p->queue_next!=NULL; p=p->queue_next )
-    if( p == proc ) return;  //already in queue
-
-  // p points to the last element of the waiting queue
+    if( p == proc ) return; 
   if( p==proc ) return;
+  //若不在等待队列中，则插入
   proc->status = BLOCKED;
   proc->queue_next = waiting_queue_head;
   waiting_queue_head = proc;
   return;
 }
 
-void wake_up() {
+void wake_up() {     //前一个进程exit后唤醒下一个进程
    if (waiting_queue_head == NULL) return;
   process *p = waiting_queue_head;
   waiting_queue_head = waiting_queue_head->queue_next;
   insert_to_ready_queue(p);
 }
-////////////////////////////////////////////////////////////////////////////////////chanllenge
