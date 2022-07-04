@@ -14,7 +14,7 @@ typedef struct elf_info_t {
 } elf_info;
 
 
-//////////////////////////////////////////////////////////
+
 #define NFUNC 20
 static char strtab[1000];
 static func functions[NFUNC];
@@ -26,7 +26,7 @@ char *find_func(uint64 addr)
   {
     if (addr >= functions[i].addr && addr < functions[i].addr + functions[i].size)
     {
-      //sprint("/****** debug *****/ addr: 0x%lx, size: %ld, st_idx: %ld, str: %s\n", functions[i].addr, functions[i].size, functions[i].st_idx, strtab + functions[i].st_idx);
+      
       return strtab + functions[i].st_idx;
     }
   }
@@ -34,7 +34,7 @@ char *find_func(uint64 addr)
   return NULL;
 }
 
-////////////////////////////////////////////////////////////////
+
 //
 // the implementation of allocater. allocates memory space for later segment loading
 //
@@ -70,7 +70,6 @@ elf_status elf_init(elf_ctx *ctx, void *info) {
 }
 
 
-/////////////////////////////////////////////////////////////
 static elf_sect_header find_symtab(elf_ctx *ctx)
 {
   elf_sect_header sh_addr;
@@ -125,7 +124,7 @@ static elf_status elf_load_func(elf_ctx *ctx)
   return EL_OK;
 }
 
-/////////////////////////////////////////////////////////////
+
 //
 // load the elf segments to memory regions as we are in Bare mode in lab1
 //

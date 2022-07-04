@@ -37,7 +37,7 @@ typedef struct elf_prog_header_t {
   uint64 align;  /* Segment alignment */
 } elf_prog_header;
 
-/////////////////////////////////////////////////////////////////////
+
 // elf section header
 typedef struct elf_sect_header_t{
   uint32 name;
@@ -61,7 +61,7 @@ typedef enum sh_type_t {
 // Symbol table
 typedef struct elf_symbol_t {
   uint32 st_name;   /* a string table index that gives the symbol name */
-  uint8 st_info;    /* the type of symbol */
+  uint8 st_info;    /* the type of symbol */  //找到对应String Table的地址信息（偏移值）
   uint8 st_other;
   uint16 st_shndx;
   uint64 st_value;  /* the value of the associated symbol */
@@ -74,7 +74,7 @@ typedef enum st_info_t {
  STT_FUNC = 2,
 } st_info;
 
-/////////////////////////////////////////////////////////////////////////////////////////////
+
 
 
 #define ELF_MAGIC 0x464C457FU  // "\x7FELF" in little endian
@@ -100,13 +100,13 @@ elf_status elf_load(elf_ctx *ctx);
 
 void load_bincode_from_host_elf(process *p);
 
-//////////////////////////////////////////////////////////
+
 typedef struct func_t {
   uint64 addr;
   uint64 st_idx;  /* the string table index */
   uint64 size;
 } func;
-/////////////////////////////////////////////////////////////
+
 
 char *find_func(uint64 addr);
 #endif
