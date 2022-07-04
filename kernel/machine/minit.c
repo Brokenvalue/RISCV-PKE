@@ -118,7 +118,7 @@ void m_start(uintptr_t hartid, uintptr_t dtb) {
   write_csr(mstatus, read_csr(mstatus) | MSTATUS_MIE);
 
   // delegate all interrupts and exceptions to supervisor mode.
-  // delegate_traps() is defined above.
+  // _traps() is defined above.
   delegate_traps();
 
   // also enables interrupt handling in supervisor mode. added @lab1_3
